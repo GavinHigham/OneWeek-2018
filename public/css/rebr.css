@@ -1,0 +1,75 @@
+:root {
+	--main-color: #FA6104;
+	--orange-bg: #5d3d25;
+}
+
+.orangeBox {
+	border-style: solid;
+	border-color: var(--main-color);
+	border-width: 1px;
+	color: var(--main-color);
+	background-color: var(--orange-bg);
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font: 13px Helvetica, Arial;
+	background-color: #000;
+}
+
+form {
+	background: #000;
+	padding: 3px;
+	position: inline;
+	top: 0;
+	width: 100%;
+}
+
+form input {
+	border: 0;
+	padding: 10px;
+	margin-right: .5%;
+}
+
+.searchPrefix {
+	width: 10%;
+}
+
+.searchQuery {
+	border-width: 3px;
+	border-style: double;
+	width: 30%;
+}
+
+.searchSuffix {
+	width: 30%;
+}
+
+form button {
+	width: 9%;
+	/*background: rgb(130, 224, 255);*/
+	background-color: #5d3d25;
+	padding: 10px;
+}
+
+#messages {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+#messages li {
+	color: var(--main-color);
+	padding: 5px 10px;
+	background: #352418;
+}
+
+#messages li:nth-child(odd) {
+	color: var(--main-color);
+	background: #291c12;
+}

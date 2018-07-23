@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Socket.IO chat</title>
+		<link rel="stylesheet" type="text/css" href="css/rebr.css">
+	</head>
+	<body>
+		<form action="">
+			<input class="orangeBox searchPrefix" id="searchPrefix" autocomplete="off" value="ag"/>
+			<input class="orangeBox searchQuery" id="searchQuery" autocomplete="off" />
+			<input class="orangeBox searchSuffix" id="searchSuffix" autocomplete="off" value="O:/Hackathon 2018/reBreather" />
+			<button class="orangeBox">Send</button>
+		</form>
+		<ul id="messages"></ul>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+		<script>
+			$(function () {
+				var socket = io();
+				$('form').submit(function (){
+					socket.emit('chat message', {
+						prefix: $('#searchPrefix').val(),
+						query: $('#searchQuery').val(),
+						suffix: $('#searchSuffix').val()
+					});
+					$('#searchQuery').val('');
+					return false;
+				});
+				socket.on('chat message', function(msg){
+					$('#messages').append($('<li>').text(msg));
+				});
+			});
+		</script>
+	</body>
+</html>
