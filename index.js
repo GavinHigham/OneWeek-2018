@@ -21,14 +21,14 @@ const { spawn } = require('child_process');
 
 
 function run_query(msg, io) {
-	const dir = spawn(msg.prefix, [msg.query, msg.suffix]);
+	const dir = spawn(msg.command, msg.args);
 	dir.on('error', (err) => {
 		console.log('Failed to start child process.');
 	});
 
 	dir.stdout.on('data', (data) => {
 	  console.log(`stdout: ${data}`);
-	  io.emit('chat message', data.toString());
+	  io.emit('query result', data.toString());
 	});
 
 	dir.stderr.on('data', (data) => {
@@ -45,8 +45,8 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
-	socket.on('chat message', function(msg){
-		io.emit('chat message', JSON.stringify(msg));
+	socket.on('query request', function(msg){
+		io.emit('query object', JSON.stringify(msg));
 		run_query(msg, io);
 	});
 });

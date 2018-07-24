@@ -36,18 +36,27 @@ form input {
 	margin-right: .5%;
 }
 
-.searchPrefix {
+#searchCommand {
+	width: 8%;
+}
+
+#searchPrefix {
 	width: 10%;
 }
 
-.searchQuery {
+#searchQuery {
 	border-width: 3px;
 	border-style: double;
 	width: 30%;
 }
 
-.searchSuffix {
+#searchSuffix {
 	width: 30%;
+}
+
+.smallConfig {
+	padding: 1px;
+	width: 5em;
 }
 
 form button {
