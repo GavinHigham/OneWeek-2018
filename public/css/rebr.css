@@ -110,3 +110,20 @@ form button {
 	color: var(--main-color);
 	background: #291c12;
 }
+
+#queryResults li ul {
+	list-style-type: none;
+	list-style-position: inside;
+	color: var(--main-color);
+	padding: 5px 10px;
+	background: #352418;
+}
+
+#queryResults li ul li {
+	list-style-type: none;
+}
+
+#queryResults li ul li:nth-child(odd) {
+	color: var(--main-color);
+	background: #291c12;
+}

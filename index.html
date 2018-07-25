@@ -10,7 +10,7 @@
 			<form id="searchBar" action="">
 				<input class="orangeBox" id="searchCommand" autocomplete="on" value="ag" />
 				<input class="orangeBox" id="searchPrefix" autocomplete="on" value="-C 5" />
-				<input class="orangeBox" id="searchQuery" autocomplete="on" autofocus="true" value="run_query" />
+				<input class="orangeBox" id="searchQuery" autocomplete="on" autofocus="true" value="run_query" oninput="clearSearchParent()" />
 				<input class="orangeBox" id="searchSuffix" autocomplete="on" value="O:/Hackathon 2018/reBreather" />
 				<button class="orangeBox">Send</button>
 			</form>
@@ -31,18 +31,32 @@
 		<script>
 			window.searchQueryResults = {};
 			window.searchQueries = [];
+			window.searchParent = emptySearchParent();
 
 			function wordOnClick(){
+				//window.searchParent = {query: queryToQueryString(makeQueryRequest()), level: window.searchParent.level + 1);
+
 				var tokenRegex = RegExp($('#tokenRegex').val());
 				if (tokenRegex.test(this.textContent))
 					$('#searchQuery')
 						.val(this.textContent.match(tokenRegex))
 						.focus();
 
-				window.currentSearchQuery = queryToQueryString(makeQueryRequest());
 			}
 
-			function queryViewItemOnClick(){
+			function emptySearchParent(){
+				return {query: null, level: 0};
+			}
+
+			//Doesn't clear the box, clears the query that would be used as a parent for some new query.
+			function clearSearchParent(){
+				window.searchParent = emptySearchParent();
+				console.log("Clearing current query!");
+			}
+
+			function queryViewNodeOnClick(){
+				var node = window.searchQueries.find(node => queryToQueryString(node) == this.textContent);
+				window.searchParent = {query: this.textContent, level: 0/*node.level*/};
 				setMainView(this.textContent);
 			}
 
@@ -56,12 +70,13 @@
 				};
 			}
 
-			function pushToQueryViewNode(queryRequest){
+			function pushQueryViewNode(queryRequest){
 				// TODO(Gavin): Arrange these into a tree, so that I can add new queries nested beneath the queries they originate from.
-				// if (window.currentSearchQuery)
+				// if (window.searchParent)
 				// 	window.searchQueries.forEach(function(element){
-				// 		if (queryToQueryString(element) == window.currentSearchQuery)
-
+				// 		if (queryToQueryString(element) == window.searchParent)
+				queryRequest.parent = window.searchParent;
+				queryRequest.level = window.searchParent ? (window.searchParent.level + 1) : 0;
 				window.searchQueries.push(queryRequest);
 			}
 
@@ -71,15 +86,24 @@
 
 			function updateQueryView(){
 				$('#queries').html('');
-				window.searchQueries.forEach(function(element){
+				window.searchQueries.filter(node => node.level == 1).forEach(function(element){
 					$('#queries').append($('<li>')
 						.text(queryToQueryString(element))
-						.click(queryViewItemOnClick));
+						.click(queryViewNodeOnClick));
+				});
+
+				window.searchQueries.filter(node => node.level == 2).forEach(function(element){
+					$('#queries')
+						.find($('li'))
+						.filter((index, el) => el.textContent == element.parent.query)
+						.append($('<ul>')
+						    .append($('<li>')
+								.text(queryToQueryString(element))
+								.click(queryViewNodeOnClick)));
 				});
 			}
 
 			function setMainView(queryString){
-				window.currentSearchQuery = queryString;
 				var highlight = document.querySelector('input[id="syntaxHighlighting"]').checked;
 
 				//Clear previous query
@@ -110,7 +134,7 @@
 				//Query
 				$('form').submit(function (){
 					var query_request = makeQueryRequest();
-					pushToQueryViewNode(query_request);
+					pushQueryViewNode(query_request);
 					updateQueryView();
 
 					socket.emit('query request', query_request);
