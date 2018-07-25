@@ -23,7 +23,6 @@ body {
 }
 
 form {
-	background: #000;
 	padding: 3px;
 	position: inline;
 	top: 0;
@@ -33,7 +32,12 @@ form {
 form input {
 	border: 0;
 	padding: 10px;
-	margin-right: .5%;
+}
+
+#searchConfigBar {
+	position: sticky;
+	top: 0%;
+	background: #00000011;
 }
 
 #searchCommand {
@@ -56,7 +60,15 @@ form input {
 
 .smallConfig {
 	padding: 1px;
-	width: 5em;
+	width: auto;
+}
+
+.clickableWord:hover {
+	background: #543926;
+}
+
+label.smallConfig {
+	color: var(--main-color);
 }
 
 form button {
@@ -66,19 +78,35 @@ form button {
 	padding: 10px;
 }
 
-#messages {
+#queries {
 	list-style-type: none;
-	margin: 0;
+	background: #53291c;
+	color: var(--main-color);
+	position: fixed;
+	width: 30em;
+	margin-left: calc(100% - 30em);
+}
+
+#queries li {
+	padding: 2px;
+}
+
+#queries li:hover {
+	background: #693305;
+}
+
+#queryResults {
+	list-style-type: none;
 	padding: 0;
 }
 
-#messages li {
+#queryResults li {
 	color: var(--main-color);
 	padding: 5px 10px;
 	background: #352418;
 }
 
-#messages li:nth-child(odd) {
+#queryResults li:nth-child(odd) {
 	color: var(--main-color);
 	background: #291c12;
 }

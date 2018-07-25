@@ -28,7 +28,7 @@ function run_query(msg, io) {
 
 	dir.stdout.on('data', (data) => {
 	  console.log(`stdout: ${data}`);
-	  io.emit('query result', data.toString());
+	  io.emit('query result', {command: msg.command, args: msg.args, data: data, dataString: data.toString()});
 	});
 
 	dir.stderr.on('data', (data) => {

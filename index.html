@@ -6,44 +6,132 @@
 		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
 	</head>
 	<body>
-		<form action="">
-			<input class="orangeBox" id="searchCommand" autocomplete="off" value="ag" />
-			<input class="orangeBox" id="searchPrefix" autocomplete="off" value="-C 5" />
-			<input class="orangeBox" id="searchQuery" autocomplete="off" value="run_query" />
-			<input class="orangeBox" id="searchSuffix" autocomplete="off" value="O:/Hackathon 2018/reBreather" />
-			<button class="orangeBox">Send</button>
-			</br>
-			<input class="orangeBox smallConfig" id="splitRegex" autocomplete="off" value="--" />
-			<input class="orangeBox smallConfig" id="tokenRegex" autocomplete="off" value="--" />
-		</form>
-		<ul id="messages"></ul>
+		<div id="searchConfigBar">
+			<form id="searchBar" action="">
+				<input class="orangeBox" id="searchCommand" autocomplete="on" value="ag" />
+				<input class="orangeBox" id="searchPrefix" autocomplete="on" value="-C 5" />
+				<input class="orangeBox" id="searchQuery" autocomplete="on" autofocus="true" value="run_query" />
+				<input class="orangeBox" id="searchSuffix" autocomplete="on" value="O:/Hackathon 2018/reBreather" />
+				<button class="orangeBox">Send</button>
+			</form>
+			<form id="configBar" action="">
+				<input class="orangeBox smallConfig" id="splitRegex" autocomplete="off" value="--" />
+				<input class="orangeBox smallConfig" id="tokenRegex" autocomplete="off" value="[a-zA-Z_][a-zA-Z0-9_]*" />
+				<input class="orangeBox smallConfig" id="syntaxHighlighting" type="checkbox" />
+				<label class="smallConfig" for="syntaxHighlighting">Highlight Syntax</label>
+				<input class="orangeBox smallConfig" id="syntaxLanguage" autocomplete="off" value="" />
+			</form>
+		</div>
+
+		<ul id="queries"></ul>
+		<ul id="queryResults"></ul>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 		<script>
-			var lastResult;
+			window.searchQueryResults = {};
+			window.searchQueries = [];
+
+			function wordOnClick(){
+				var tokenRegex = RegExp($('#tokenRegex').val());
+				if (tokenRegex.test(this.textContent))
+					$('#searchQuery')
+						.val(this.textContent.match(tokenRegex))
+						.focus();
+
+				window.currentSearchQuery = queryToQueryString(makeQueryRequest());
+			}
+
+			function queryViewItemOnClick(){
+				setMainView(this.textContent);
+			}
+
+			function makeQueryRequest(){
+				var sep = /,\s*/g;
+				var queryArgs = $('#searchPrefix').val().split(sep).concat($('#searchQuery').val(), $('#searchSuffix').val().split(sep)).filter(word => word != "");
+
+				return {
+					command: $('#searchCommand').val(),
+					args: queryArgs
+				};
+			}
+
+			function pushToQueryViewNode(queryRequest){
+				// TODO(Gavin): Arrange these into a tree, so that I can add new queries nested beneath the queries they originate from.
+				// if (window.currentSearchQuery)
+				// 	window.searchQueries.forEach(function(element){
+				// 		if (queryToQueryString(element) == window.currentSearchQuery)
+
+				window.searchQueries.push(query_request);
+			}
+
+			function queryToQueryString(query){
+				return query.command + ' ' + query.args.join(' ');
+			}
+
+			function updateQueryView(){
+				$('#queries').html('');
+				window.searchQueries.forEach(function(element){
+					$('#queries').append($('<li>')
+						.text(queryToQueryString(element))
+						.click(queryViewItemOnClick));
+				});
+			}
+
+			function setMainView(queryString){
+				window.currentSearchQuery = queryString;
+				var highlight = document.querySelector('input[id="syntaxHighlighting"]').checked;
+
+				//Clear previous query
+				$('#queryResults').html("");
+				window.searchQueryResults[queryString].dataString.split($('#splitRegex').val()).forEach(function(element){
+					if (highlight) {
+						$('#queryResults').append($('<li>').html('<pre><code>' + hljs.highlightAuto(element).value + '</code></pre>'));
+						$('#queryResults > li:last > pre > code').find('span')
+							.click(wordOnClick)
+							.addClass('clickableWord');
+					} else {
+						if ($('#tokenRegex').val() != "") {
+							$('#queryResults').append($('<li><pre><code>'));
+							$('#queryResults > li:last > pre > code')
+								.html(element.replace(/([a-zA-Z_][a-zA-Z0-9_]*)/g, '<span class="clickableWord">$1</span>'))
+								.find('span').click(wordOnClick);
+						} else {
+							$('#queryResults').append($('<li><pre><code>'));
+							$('#queryResults > li:last > pre > code').text(element);
+						}
+					}
+				});
+			}
+
 			$(function () {
 				var socket = io();
-				$('form').submit(function (){
-					var sep = /,\s*/g;
-					var queryArgs = $('#searchPrefix').val().split(sep).concat($('#searchQuery').val(), $('#searchSuffix').val().split(sep));
 
-					socket.emit('query request', {
-						command: $('#searchCommand').val(),
-						args: queryArgs
-					});
+				//Query
+				$('form').submit(function (){
+					var query_request = makeQueryRequest();
+					pushToQueryView(query_request);
+					updateQueryView();
+
+					socket.emit('query request', query_request);
 					$('#searchQuery').val('');
 					return false;
 				});
+
+				//Results
 				socket.on('query result', function(msg){
-					lastResult = msg;
-					msg.split($('#splitRegex').val()).forEach(function(element){
-						console.log(element);
-						$('#messages').append($('<li>').html('<pre><code>' + hljs.highlightAuto(element).value + '</code></pre>'));
-					});
+					console.log(msg);
+					var strq = queryToQueryString(msg);
+					if (!window.searchQueryResults[strq])
+						window.searchQueryResults[strq] = msg;
+					else
+						window.searchQueryResults[strq].dataString += msg.dataString;
+					setMainView(strq);
 				});
+
+				//Query
 				socket.on('query object', function(msg){
-					$('#messages').append($('<li>').text(msg));
+					$('#queryResults').append($('<li>').text(msg));
 				});
 			});
 		</script>
