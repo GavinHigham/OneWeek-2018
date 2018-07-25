@@ -62,7 +62,7 @@
 				// 	window.searchQueries.forEach(function(element){
 				// 		if (queryToQueryString(element) == window.currentSearchQuery)
 
-				window.searchQueries.push(query_request);
+				window.searchQueries.push(queryRequest);
 			}
 
 			function queryToQueryString(query){
@@ -110,7 +110,7 @@
 				//Query
 				$('form').submit(function (){
 					var query_request = makeQueryRequest();
-					pushToQueryView(query_request);
+					pushToQueryViewNode(query_request);
 					updateQueryView();
 
 					socket.emit('query request', query_request);
